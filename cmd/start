@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eu
+
+elm-go src/Main.elm --pushstate --start-page=200.html --dir=docs -- --output=docs/elm.js --debug

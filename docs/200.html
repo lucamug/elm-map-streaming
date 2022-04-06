@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="shortcut icon" size="16x16, 32x32, 48x48, 64x64, 128x128, 256x256" href="/favicon.ico">
+    <!-- Primary Meta Tags -->
+    <title>elm-map</title>
+    <meta name="title" content="elm-map">
+    <meta name="description" content='A proof of concept for a "slippy" geographic map in 100% #elmlang 🗺️ 🧭. Made with 380 lines of Elm and 1 line of JavaScript.'>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://elm-map.guupa.com/">
+    <meta property="og:title" content="elm-map">
+    <meta property="og:description" content='A proof of concept for a "slippy" geographic map in 100% #elmlang 🗺️ 🧭. Made with 380 lines of Elm and 1 line of JavaScript.'>
+    <meta property="og:image" content="https://elm-map.guupa.com/elm-map.jpg">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://elm-map.guupa.com/">
+    <meta property="twitter:title" content="elm-map">
+    <meta property="twitter:description" content='A proof of concept for a "slippy" geographic map in 100% #elmlang 🗺️ 🧭. Made with 380 lines of Elm and 1 line of JavaScript.'>
+    <meta property="twitter:image" content="https://elm-map.guupa.com/elm-map.jpg">
+</head>
+
+<body>
+    <div id="elm"></div>
+    <script src="/elm.js"></script>
+    <script>
+        function isFullscreen() {
+            if (typeof document.fullscreen === "boolean") {
+                return document.fullscreen;
+            } else if (typeof document.webkitIsFullScreen === "boolean") {
+                return document.webkitIsFullScreen;
+            } else {
+                return false;
+            }
+        }
+        app = Elm[Object.keys(Elm)[0]].init({
+            node: elm,
+            flags: {
+                pathnameAsString: document.location.pathname,
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
+            }
+        });
+        app.ports.pushState.subscribe((u) => {
+            history.pushState({}, '', u);
+        });
+        window.onpopstate = function(event) {
+            app.ports.popState.send(document.location.pathname);
+        };
+        app.ports.toggleFullscreen.subscribe(() => {
+            if (isFullscreen()) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            } else {
+                if (document.body.requestFullscreen) {
+                    document.body.requestFullscreen();
+                } else if (document.body.webkitRequestFullscreen) {
+                    document.body.webkitRequestFullscreen();
+                }
+            }
+        });
+        document.addEventListener("fullscreenchange", function() {
+            app.ports.onToggleFullscreen.send(isFullscreen());
+        }, false);
+        document.addEventListener("webkitfullscreenchange", function() {
+            app.ports.onToggleFullscreen.send(isFullscreen());
+        }, false);
+    </script>
+</body>
+
+</html>
