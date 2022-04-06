@@ -63,35 +63,37 @@ type alias Model =
     , stateFullscreen : Bool
     , markers : List Map.LatLng
     , extraCss : String
-    , tilesSource : String
+    , tilesSource : TilesSource
     }
 
 
-defaultTilesSource : String
+type alias TilesSource =
+    { name : String
+    , url : String
+    , order : Map.TileDataOrder
+    , copyrights : List { text : String, url : String }
+    }
+
+
+defaultTilesSource : TilesSource
 defaultTilesSource =
-    "https://tile.openstreetmap.org/"
+    { url = "https://tile.openstreetmap.org/"
+    , name = "Open Street Map"
+    , order = Map.ZXY
+    , copyrights =
+        [ { text = "© OpenStreetMap contributors"
+          , url = "https://www.openstreetmap.org/copyright"
+          }
+        ]
+    }
 
 
-tilesSources :
-    List
-        { name : String
-        , url : String
-        , order : String
-        , copyrights : List { text : String, url : String }
-        }
+tilesSources : List TilesSource
 tilesSources =
-    [ { url = defaultTilesSource
-      , name = "Open Street Map"
-      , order = "zxy"
-      , copyrights =
-            [ { text = "© OpenStreetMap contributors"
-              , url = "https://www.openstreetmap.org/copyright"
-              }
-            ]
-      }
+    [ defaultTilesSource
     , { url = "http://c.tile.stamen.com/watercolor/"
       , name = "Watercolor"
-      , order = "zxy"
+      , order = Map.ZXY
       , copyrights =
             [ { text = "© OpenStreetMap contributors"
               , url = "https://www.openstreetmap.org/copyright"
@@ -100,7 +102,7 @@ tilesSources =
       }
     , { url = "https://a.tile.opentopomap.org/"
       , name = "Open Topomap"
-      , order = "zxy"
+      , order = Map.ZXY
       , copyrights =
             [ { text = "© OpenStreetMap contributors"
               , url = "https://www.openstreetmap.org/copyright"
@@ -109,7 +111,7 @@ tilesSources =
       }
     , { url = "https://stamen-tiles.a.ssl.fastly.net/toner/"
       , name = "Toner"
-      , order = "zxy"
+      , order = Map.ZXY
       , copyrights =
             [ { text = "© OpenStreetMap contributors"
               , url = "https://www.openstreetmap.org/copyright"
@@ -118,7 +120,7 @@ tilesSources =
       }
     , { url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/"
       , name = "ArcGIS Online"
-      , order = "zyx"
+      , order = Map.ZYX
       , copyrights =
             [ { text = "© ArcGIS Online map hosted by Esri"
               , url = "https://doc.arcgis.com/en/arcgis-online/reference/terms-of-use.htm"
@@ -146,6 +148,13 @@ cssFilters =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
+    let
+        tilesSource : TilesSource
+        tilesSource =
+            tilesSources
+                |> List.head
+                |> Maybe.withDefault defaultTilesSource
+    in
     ( { mapModel1 =
             Map.initModel
                 Nothing
@@ -163,11 +172,7 @@ init flags =
       , stateFullscreen = False
       , markers = []
       , extraCss = "filter: sepia(70%)"
-      , tilesSource =
-            tilesSources
-                |> List.head
-                |> Maybe.map .url
-                |> Maybe.withDefault defaultTilesSource
+      , tilesSource = tilesSource
       }
     , Cmd.none
     )
@@ -183,7 +188,7 @@ type Msg
     | OnToggleFullscreen Bool
     | ClickOnMarker String
     | ChangeExtraCss String
-    | ChangeTilesSource String
+    | ChangeTilesSource TilesSource
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -326,23 +331,26 @@ view model =
                         , mapModel = model.mapModel1
                         , markers = model.markers
                         , extraCss = model.extraCss
-                        , tilesSource = model.tilesSource
+                        , tilesSource = model.tilesSource.url
+                        , tileDataOrder = model.tilesSource.order
                         }
             , html <| Html.br [ Html.Attributes.style "user-select" "none" ] []
-            , row [ spacing 20 ]
-                [ column [ spacing 10, width <| px 400, alignTop ] <|
-                    Input.text []
-                        { label = Input.labelAbove [] <| text "Tiles Source"
-                        , onChange = ChangeTilesSource
-                        , placeholder = Nothing
-                        , text = model.tilesSource
-                        }
+            , column [ spacing 20, width fill, spacing 40, height <| px 200, scrollbarY ]
+                [ column [ spacing 10, width fill, alignTop ] <|
+                    -- Input.text []
+                    --     { label = Input.labelAbove [] <| text "Tiles Source"
+                    --     , onChange = ChangeTilesSource
+                    --     , placeholder = Nothing
+                    --     , text = model.tilesSource
+                    --     } ::
+                    (text "Tiles Sources"
                         :: List.map
                             (\source ->
-                                Input.button attrsButton { label = text source.name, onPress = Just <| ChangeTilesSource source.url }
+                                Input.button attrsButton { label = text source.name, onPress = Just <| ChangeTilesSource source }
                             )
                             tilesSources
-                , column [ spacing 10, width <| px 400, alignTop ] <|
+                    )
+                , column [ spacing 10, width fill, alignTop ] <|
                     Input.text []
                         { label = Input.labelAbove [] <| text "CSS Filter"
                         , onChange = ChangeExtraCss
@@ -418,9 +426,14 @@ viewMap :
     , markers : List Map.LatLng
     , extraCss : String
     , tilesSource : String
+    , tileDataOrder : Map.TileDataOrder
     }
     -> Html.Html Msg
 viewMap args =
+    let
+        _ =
+            Debug.log "order" args.tileDataOrder
+    in
     Html.div
         ([ Html.Attributes.style "display" "inline-block"
          , Html.Attributes.style "user-select" "none"
@@ -444,6 +457,7 @@ viewMap args =
             , listAddOnTransformed = listAddOnTransformed args.markers
             , extraCss = args.extraCss
             , tilesSource = args.tilesSource
+            , tileDataOrder = args.tileDataOrder
             }
             args.msgMapper
             args.mapModel

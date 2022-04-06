@@ -4,6 +4,7 @@ module Map exposing
     , LatLng
     , Model
     , Msg
+    , TileDataOrder(..)
     , Viewport
     , Zoom
     , ZoomAndPanAsRecord
@@ -509,6 +510,7 @@ view :
     , listAddOnTransformed : List (AddOnArgs msg -> Svg.Svg msg)
     , extraCss : String
     , tilesSource : String
+    , tileDataOrder : TileDataOrder
     }
     -> (Msg -> msg)
     -> Model
@@ -569,7 +571,7 @@ view args msgMapper (Model model) =
             []
          , Svg.g
             [ Zoom.transform model.situation.zoomAndPan ]
-            (List.map (\tile -> Svg.map msgMapper <| tile) (viewTiles args.tilesSource args.extraCss (Model model))
+            (List.map (\tile -> Svg.map msgMapper <| tile) (viewTiles args.tileDataOrder args.tilesSource args.extraCss (Model model))
                 ++ List.map (\addOn -> addOn addOnArgs) args.listAddOnTransformed
             )
          ]
@@ -577,11 +579,12 @@ view args msgMapper (Model model) =
         )
 
 
-viewTiles : String -> String -> Model -> List (Svg.Svg Msg)
-viewTiles tilesSource extraCss (Model model) =
+viewTiles : TileDataOrder -> String -> String -> Model -> List (Svg.Svg Msg)
+viewTiles tileDataOrder tilesSource extraCss (Model model) =
     List.map
         (\( x, y ) ->
             viewTile
+                tileDataOrder
                 tilesSource
                 extraCss
                 model.tileImageLoaded
@@ -600,8 +603,13 @@ viewTiles tilesSource extraCss (Model model) =
         )
 
 
-viewTile : String -> String -> Set.Set String -> XY -> Zoom -> { tx : Int, ty : Int } -> Int -> Int -> Svg.Svg Msg
-viewTile tilesSource extraCss loaded xyCornerOfCentertile zoom txtyCentertile dx dy =
+type TileDataOrder
+    = ZYX
+    | ZXY
+
+
+viewTile : TileDataOrder -> String -> String -> Set.Set String -> XY -> Zoom -> { tx : Int, ty : Int } -> Int -> Int -> Svg.Svg Msg
+viewTile tileDataOrder tilesSource extraCss loaded xyCornerOfCentertile zoom txtyCentertile dx dy =
     let
         maxTiles : Int
         maxTiles =
@@ -609,17 +617,28 @@ viewTile tilesSource extraCss loaded xyCornerOfCentertile zoom txtyCentertile dx
 
         tileHttp : Zoom -> Int -> Int -> String
         tileHttp zl tileX tileY =
-            tilesSource
-                -- "https://tile.openstreetmap.org/"
-                -- "http://c.tile.stamen.com/watercolor/"
-                -- "https://a.tile.opentopomap.org/"
-                -- "https://stamen-tiles.a.ssl.fastly.net/toner/"
-                ++ String.fromInt (zoomToNumber zl)
-                ++ "/"
-                ++ String.fromInt tileY
-                ++ "/"
-                ++ String.fromInt tileX
-                ++ ".png"
+            -- "https://tile.openstreetmap.org/"
+            -- "http://c.tile.stamen.com/watercolor/"
+            -- "https://a.tile.opentopomap.org/"
+            -- "https://stamen-tiles.a.ssl.fastly.net/toner/"
+            case tileDataOrder of
+                ZYX ->
+                    tilesSource
+                        ++ String.fromInt (zoomToNumber zl)
+                        ++ "/"
+                        ++ String.fromInt tileY
+                        ++ "/"
+                        ++ String.fromInt tileX
+                        ++ ".png"
+
+                ZXY ->
+                    tilesSource
+                        ++ String.fromInt (zoomToNumber zl)
+                        ++ "/"
+                        ++ String.fromInt tileX
+                        ++ "/"
+                        ++ String.fromInt tileY
+                        ++ ".png"
 
         hrefTile : String
         hrefTile =

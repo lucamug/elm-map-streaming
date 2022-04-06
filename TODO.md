@@ -3,6 +3,7 @@
 * Implement the ZXY type
 * Fix the layout to be mobile
 * Add multiple copyrights
+* Restore the capability to manually edit a tiles source
 
 ----
 
