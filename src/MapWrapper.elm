@@ -1,13 +1,8 @@
-port module Main exposing (main)
+port module MapWrapper exposing (..)
 
 import Browser
 import Browser.Events
 import Color
-import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import FeatherIcons
 import FontAwesome.Icon
 import FontAwesome.Regular
@@ -299,122 +294,6 @@ updateMap1Viewport model viewport stateFullviewport =
 -- VIEW
 
 
-attrsButton : List (Attribute msg)
-attrsButton =
-    [ paddingEach { top = 10, right = 20, bottom = 10, left = 20 }
-    , Border.rounded 20
-    , Background.color <| rgb 0.9 0.8 0.5
-    , width fill
-    ]
-
-
-view : Model -> Html.Html Msg
-view model =
-    layout [] <|
-        column
-            [ spacing 20, padding 50 ]
-            [ html <| Html.node "style" [] [ Html.text css ]
-            , row [] [ image [ width <| px 60 ] { src = "elm-map-logo.png", description = "" }, text " elm-map!" ]
-
-            -- , p [] [ text "Map examples" ]
-            , el [] <|
-                html <|
-                    viewMap
-                        { supporFullviewport = True
-                        , stateFullscreen = model.stateFullscreen
-                        , stateFullviewport = model.stateFullviewport
-                        , listLayers = [ mapLinks ]
-
-                        -- , listAddOn = [ MapAddOn.markerLatLongLive ]
-                        , listAddOn = []
-                        , msgMapper = MapMsg1
-                        , mapModel = model.mapModel1
-                        , markers = model.markers
-                        , extraCss = model.extraCss
-                        , tilesSource = model.tilesSource.url
-                        , tileDataOrder = model.tilesSource.order
-                        }
-            , html <| Html.br [ Html.Attributes.style "user-select" "none" ] []
-            , column [ spacing 20, width fill, spacing 40, height <| px 300, scrollbarY ]
-                [ column [ spacing 10, width fill, alignTop ] <|
-                    -- Input.text []
-                    --     { label = Input.labelAbove [] <| text "Tiles Source"
-                    --     , onChange = ChangeTilesSource
-                    --     , placeholder = Nothing
-                    --     , text = model.tilesSource
-                    --     } ::
-                    (text "Tiles Sources"
-                        :: List.map
-                            (\source ->
-                                Input.button attrsButton { label = text source.name, onPress = Just <| ChangeTilesSource source }
-                            )
-                            tilesSources
-                    )
-                , column [ spacing 10, width fill, alignTop ] <|
-                    Input.text []
-                        { label = Input.labelAbove [] <| text "CSS Filter"
-                        , onChange = ChangeExtraCss
-                        , placeholder = Nothing
-                        , text = model.extraCss
-                        }
-                        :: List.map
-                            (\source ->
-                                Input.button attrsButton { label = text source.name, onPress = Just <| ChangeExtraCss source.url }
-                            )
-                            cssFilters
-                ]
-
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = [ MapAddOn.markerLatLongLive ]
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = [ MapAddOn.markerLatLong ]
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = []
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = []
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            ]
-
-
 viewMap :
     { listAddOn : List (Map.AddOnArgs Msg -> Svg.Svg Msg)
     , listLayers : List (Html.Html Msg)
@@ -695,25 +574,6 @@ subscriptions model =
         , popState PopState
         , onToggleFullscreen OnToggleFullscreen
         ]
-
-
-
--- MAIN
-
-
-main : Program Flags Model Msg
-main =
-    Browser.element
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
-
-
-
---
---
 
 
 markerHippo : Map.AddOnArgs Msg -> Svg.Svg Msg
