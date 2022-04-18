@@ -447,10 +447,6 @@ viewMap :
     }
     -> Html.Html Msg
 viewMap args =
-    let
-        _ =
-            Debug.log "order" args.tileDataOrder
-    in
     Html.div
         ([ Html.Attributes.style "display" "inline-block"
          , Html.Attributes.style "user-select" "none"
