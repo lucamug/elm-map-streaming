@@ -171,7 +171,7 @@ init flags =
       , stateFullviewport = False
       , stateFullscreen = False
       , markers = []
-      , extraCss = "filter: sepia(70%)"
+      , extraCss = "filter: invert(100%) grayscale(100%) brightness(200%)"
       , tilesSource = tilesSource
       }
     , Cmd.none
@@ -314,7 +314,7 @@ view model =
         column
             [ spacing 20, padding 50 ]
             [ html <| Html.node "style" [] [ Html.text css ]
-            , row [] [ image [ width <| px 60 ] { src = "elm-map-logo.png", description = "" }, text " elm-map!" ]
+            , row [] [ image [ width <| px 60 ] { src = "elm-map-logo.png", description = "" }, text " elm-map" ]
 
             -- , p [] [ text "Map examples" ]
             , el [] <|
@@ -335,7 +335,7 @@ view model =
                         , tileDataOrder = model.tilesSource.order
                         }
             , html <| Html.br [ Html.Attributes.style "user-select" "none" ] []
-            , column [ spacing 20, width fill, spacing 40, height <| px 300, scrollbarY ]
+            , row [ spacing 20, width fill, spacing 40 ]
                 [ column [ spacing 10, width fill, alignTop ] <|
                     -- Input.text []
                     --     { label = Input.labelAbove [] <| text "Tiles Source"
@@ -351,67 +351,84 @@ view model =
                             tilesSources
                     )
                 , column [ spacing 10, width fill, alignTop ] <|
-                    Input.text []
-                        { label = Input.labelAbove [] <| text "CSS Filter"
-                        , onChange = ChangeExtraCss
-                        , placeholder = Nothing
-                        , text = model.extraCss
-                        }
-                        :: List.map
+                    ([]
+                        ++ [ text "CSS Filter" ]
+                        ++ List.map
                             (\source ->
                                 Input.button attrsButton { label = text source.name, onPress = Just <| ChangeExtraCss source.url }
                             )
                             cssFilters
+                        ++ [ Input.text []
+                                { label = Input.labelHidden "CSS Filter"
+                                , onChange = ChangeExtraCss
+                                , placeholder = Nothing
+                                , text = model.extraCss
+                                }
+                           ]
+                    )
                 ]
-
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = [ MapAddOn.markerLatLongLive ]
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = [ MapAddOn.markerLatLong ]
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = []
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
-            -- , div [ style "margin" "20px", style "display" "inline-block" ]
-            --     [ viewMap
-            --         { supporFullviewport = False
-            --         , stateFullscreen = model.stateFullscreen
-            --         , stateFullviewport = False
-            --         , listLayers = []
-            --         , listAddOn = []
-            --         , msgMapper = MapMsg2
-            --         , mapModel = model.mapModel2
-            --         , markers = model.markers
-            --         }
-            --     ]
+            , wrappedRow [ spacing 20 ]
+                [ el [] <|
+                    html <|
+                        viewMap
+                            { supporFullviewport = False
+                            , stateFullscreen = model.stateFullscreen
+                            , stateFullviewport = False
+                            , listLayers = []
+                            , listAddOn = [ MapAddOn.markerLatLongLive ]
+                            , msgMapper = MapMsg2
+                            , mapModel = model.mapModel2
+                            , markers = model.markers
+                            , extraCss = model.extraCss
+                            , tilesSource = model.tilesSource.url
+                            , tileDataOrder = model.tilesSource.order
+                            }
+                , el [] <|
+                    html <|
+                        viewMap
+                            { supporFullviewport = False
+                            , stateFullscreen = model.stateFullscreen
+                            , stateFullviewport = False
+                            , listLayers = []
+                            , listAddOn = [ MapAddOn.markerLatLong ]
+                            , msgMapper = MapMsg2
+                            , mapModel = model.mapModel2
+                            , markers = model.markers
+                            , extraCss = model.extraCss
+                            , tilesSource = model.tilesSource.url
+                            , tileDataOrder = model.tilesSource.order
+                            }
+                , el [] <|
+                    html <|
+                        viewMap
+                            { supporFullviewport = False
+                            , stateFullscreen = model.stateFullscreen
+                            , stateFullviewport = False
+                            , listLayers = []
+                            , listAddOn = []
+                            , msgMapper = MapMsg2
+                            , mapModel = model.mapModel2
+                            , markers = model.markers
+                            , extraCss = model.extraCss
+                            , tilesSource = model.tilesSource.url
+                            , tileDataOrder = model.tilesSource.order
+                            }
+                , el [] <|
+                    html <|
+                        viewMap
+                            { supporFullviewport = False
+                            , stateFullscreen = model.stateFullscreen
+                            , stateFullviewport = False
+                            , listLayers = []
+                            , listAddOn = []
+                            , msgMapper = MapMsg2
+                            , mapModel = model.mapModel2
+                            , markers = model.markers
+                            , extraCss = model.extraCss
+                            , tilesSource = model.tilesSource.url
+                            , tileDataOrder = model.tilesSource.order
+                            }
+                ]
             ]
 
 
